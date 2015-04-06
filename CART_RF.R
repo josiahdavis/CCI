@@ -1,5 +1,5 @@
 #############################
-# Basic Classification Tree
+# Classification Tree
 ##############################
 
 ####
@@ -31,15 +31,7 @@ round(tree$variable.importance, 1)  # Check the importance (measured as avg. dec
 #####
 # Evaluate the tree
 #####
-pred.train <- predict(tree, train); pred.test <- predict(tree, test)  # Generate the predictions for training and test set
-
-# Mosaic plot for training data
-pred.survival <- pred.train[,2]>0.5
-actual.survival <- train$survived == 1
-results <- table(actual.survival, pred.survival)
-labels <- round(100*prop.table(results, 2), 1)
-mosaic(results, pop = FALSE, main = "Tree Evaluated on Training Data")
-labeling_cells(text = labels, margin = 0)(results)
+pred.test <- predict(tree, test)  # Generate the predictions for training and test set
 
 # Mosaic plot for testing data
 pred.survival.test <- pred.test[,2]>0.5
@@ -49,19 +41,15 @@ labels <- round(100*prop.table(results, 2), 1)
 mosaic(results, pop = FALSE, main = "Tree Evaluated on Test Data")
 labeling_cells(text = labels, margin = 0)(results)
 
-
 # Generate plain two way tables
-round(prop.table(table(train$survived,pred.train[,2]>0.5), 1)*100, 2) # Correctly predicted from training set
 round(prop.table(table(test$survived,pred.test[,2]>0.5), 1)*100, 2)   # Correctly predicted from test set
 
-
 #####################
-# Basic Random Forest
+# Random Forest
 #####################
 library(randomForest)
 rf <- randomForest(form, train, importance = TRUE, na.action = na.omit)
 sort(round(rf$importance[,4], 1), decreasing = TRUE) # Average decrease in the gini coefficient
 
-pred.train.rf <- predict(rf, train); pred.test.rf <- predict(rf, test)
-round(prop.table(table(train$survived,pred.train.rf), 1)*100, 2) # Correctly predicted from training set
+pred.test.rf <- predict(rf, test)
 round(prop.table(table(test$survived,pred.test.rf), 1)*100, 2)   # Correctly predicted from test set
