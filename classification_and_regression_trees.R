@@ -86,15 +86,21 @@ sum(test$prediction == test$survived) / nrow(test)
 table(test$prediction, test$survived)
 prop.table(table(test$prediction, test$survived), 2)
 
-# Sensitivity: For people who survived, how many people where predicted to survive?
+# Sensitivity: When the person survived, how often did it predict survival?
+# A.K.A. True Positive Rate
 test_lived = test[test$survived,]
 sum(test_lived$prediction == test_lived$survived) / nrow(test_lived)
 
-# Specificty: For people who died, how many people where predicted to die?
+# Specificty: When the person died, how often did it predict death?
+# A.K.A. True Negative Rate
 test_died = test[!test$survived,]
 sum(test_died$prediction == test_died$survived) / nrow(test_died)
+
+# AUC (TBD)
 
 ########
 # Plot the tree
 ########
 plot(as.party(tree))
+
+# TBD
