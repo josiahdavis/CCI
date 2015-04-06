@@ -18,20 +18,64 @@ data <- read.csv("titanic.csv", header = TRUE)
 idxs <- runif(nrow(data)) < 0.7   # Random Indices
 train <- data[idxs, ]             # Training set
 test  <- data[!idxs, ]            # Testing set
+summary(train)
 
 #####
 # Create the tree
 #####
-form <- as.formula(as.factor(survived) ~ pclass + sex + age + sibsp) # Specify the variables of interest
-tree <- rpart(form, train)          # Create the tree
-plot(as.party(tree))                # Plot the tree
-round(tree$variable.importance, 1)  # Check the importance (measured as avg. decrease in gini coefficient)
+tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+              data = train, 
+              method = "class")
 
+# View the tree
+tree
+
+# View the details of each node
+summary(tree)
+
+# View the importance scores (avg. decrease in gini coefficient)
+tree$variable.importance
+
+#####
+# Control the parameters of the tree
+#####
+
+# The control argument allows you to limit how large the tree grows
+# For example: minsplit = 30 stops splitting once a node has 30 or less data points
+tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+              data = train,
+              method = "class",
+              control = rpart.control(minsplit = 30))
+
+# Another example: maxdepth = 4 limits the depth of the tree to 4 levels (inlcuding terminal node)
+tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+              data = train,
+              method = "class",
+              control = rpart.control(maxdepth = 4))
+
+# See the documentation for default values and more options
+?rpart.control
+
+#################
+# Missing Values
+#################
+
+# Remove records with missing response or ALL missing inputs (DEFALUT)
+tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+              data = train,
+              method = "class",
+              na.action = na.rpart)
+
+# Missing values (remove rows with any missing values)
+tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+              data = train,
+              method = "class",
+              na.action = na.omit)
 
 #####
 # Evaluate the tree
 #####
-pred.test <- predict(tree, test)  # Generate the predictions for training and test set
+predictions <- predict(tree, test)  # Generate the predictions for training and test set
 
 # Mosaic plot for testing data
 pred.survival.test <- pred.test[,2]>0.5
@@ -43,6 +87,11 @@ labeling_cells(text = labels, margin = 0)(results)
 
 # Generate plain two way tables
 round(prop.table(table(test$survived,pred.test[,2]>0.5), 1)*100, 2)   # Correctly predicted from test set
+
+########
+# Plot the tree
+########
+plot(as.party(tree))
 
 # ============================
 #     Random Forest
