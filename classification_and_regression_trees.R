@@ -15,6 +15,7 @@ setwd("C:/Users/josdavis/Documents/Personal/GitHub/CCI")
 # Get the data
 ####
 data <- read.csv("titanic.csv", header = TRUE)
+data$survived = data$survived == 'survived'
 idxs <- runif(nrow(data)) < 0.7   # Random Indices
 train <- data[idxs, ]             # Training set
 test  <- data[!idxs, ]            # Testing set
@@ -73,20 +74,25 @@ tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch,
               na.action = na.omit)
 
 #####
-# Evaluate the tree
+# Evaluate the accuracy of the tree
 #####
-predictions <- predict(tree, test)  # Generate the predictions for training and test set
+test$predict_proba <- predict(tree, test)[,2]
+test$prediction <- predict_proba > 0.5
 
-# Mosaic plot for testing data
-pred.survival.test <- pred.test[,2]>0.5
-actual.survival.test <- test$survived == 1
-results <- table(actual.survival.test, pred.survival.test)
-labels <- round(100*prop.table(results, 2), 1)
-mosaic(results, pop = FALSE, main = "Tree Evaluated on Test Data")
-labeling_cells(text = labels, margin = 0)(results)
+# Acccuracy in terms of classification rate (with 0.5 threshhold)
+sum(test$prediction == test$survived) / nrow(test)
 
-# Generate plain two way tables
-round(prop.table(table(test$survived,pred.test[,2]>0.5), 1)*100, 2)   # Correctly predicted from test set
+# Confusion Matrix (rows are predictions, colums are actuals)
+table(test$prediction, test$survived)
+prop.table(table(test$prediction, test$survived), 2)
+
+# Sensitivity: For people who survived, how many people where predicted to survive?
+test_lived = test[test$survived,]
+sum(test_lived$prediction == test_lived$survived) / nrow(test_lived)
+
+# Specificty: For people who died, how many people where predicted to die?
+test_died = test[!test$survived,]
+sum(test_died$prediction == test_died$survived) / nrow(test_died)
 
 ########
 # Plot the tree
