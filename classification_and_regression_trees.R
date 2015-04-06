@@ -92,13 +92,3 @@ round(prop.table(table(test$survived,pred.test[,2]>0.5), 1)*100, 2)   # Correctl
 # Plot the tree
 ########
 plot(as.party(tree))
-
-# ============================
-#     Random Forest
-# ============================
-library(randomForest)
-rf <- randomForest(form, train, importance = TRUE, na.action = na.omit)
-sort(round(rf$importance[,4], 1), decreasing = TRUE) # Average decrease in the gini coefficient
-
-pred.test.rf <- predict(rf, test)
-round(prop.table(table(test$survived,pred.test.rf), 1)*100, 2)   # Correctly predicted from test set
