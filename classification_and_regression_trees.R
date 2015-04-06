@@ -1,29 +1,34 @@
 # ============================
+# ============================
 #     Classification Tree
 # ============================
+# ============================
 
-####
-# Set up the workspace
-####
+
+# ===========================================
+#     Set up the workspace and get the data
+# ===========================================
+
 rm(list=ls()); gc()     # clear the workspace
 set.seed(973487)        # Ensures you can repeat the results
 library(rpart)          # For creating the tree
 library(partykit)       # For plotting the tree
 setwd("C:/Users/josdavis/Documents/Personal/GitHub/CCI")
 
-#####
 # Get the data
-####
 data <- read.csv("titanic.csv", header = TRUE)
 data$survived = data$survived == 'survived'
+
+# Split into training and testing sets
 idxs <- runif(nrow(data)) < 0.7   # Random Indices
 train <- data[idxs, ]             # Training set
 test  <- data[!idxs, ]            # Testing set
 summary(train)
 
-#####
+# ============================
 # Create the tree
-#####
+# ============================
+
 tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
               data = train, 
               method = "class")
@@ -40,9 +45,9 @@ summary(tree)
 # View the importance scores (avg. decrease in gini coefficient)
 tree$variable.importance
 
-#####
+# ====================================
 # Control the parameters of the tree
-#####
+# ====================================
 
 # The control argument allows you to limit how large the tree grows
 # For example: minsplit = 30 stops splitting once a node has 30 or less data points
@@ -60,10 +65,6 @@ tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch,
 # See the documentation for default values and more options
 ?rpart.control
 
-#################
-# Missing Values
-#################
-
 # Remove records with missing response or ALL missing inputs (DEFALUT)
 tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
               data = train,
@@ -76,9 +77,11 @@ tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch,
               method = "class",
               na.action = na.omit)
 
-#####
+# ===================================
 # Evaluate the accuracy of the tree
-#####
+# ===================================
+
+# Generate predictions (both probabilities and class predictions)
 test$predict_proba <- predict(tree, test)[,2]
 test$prediction <- predict_proba > 0.5
 
