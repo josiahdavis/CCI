@@ -1,9 +1,8 @@
-# ============================
-# ============================
-#     Classification Tree
-# ============================
-# ============================
-
+#############################################
+#
+# CLASSIFICATION AND REGRESSION TREES (CART)
+#
+#############################################
 
 # ===========================================
 #     Set up the workspace and get the data
@@ -25,9 +24,9 @@ train <- data[idxs, ]             # Training set
 test  <- data[!idxs, ]            # Testing set
 summary(train)
 
-# ============================
-# Create the tree
-# ============================
+# ===========================================
+#       Create the tree
+# ===========================================
 
 tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
               data = train, 
@@ -45,9 +44,9 @@ summary(tree)
 # View the importance scores (avg. decrease in gini coefficient)
 tree$variable.importance
 
-# ====================================
-# Control the parameters of the tree
-# ====================================
+# ===========================================
+#       Control the parameters of the tree
+# ===========================================
 
 # The control argument allows you to limit how large the tree grows
 # For example: minsplit = 30 stops splitting once a node has 30 or less data points
@@ -77,9 +76,9 @@ tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch,
               method = "class",
               na.action = na.omit)
 
-# ===================================
-# Evaluate the accuracy of the tree
-# ===================================
+# ===========================================
+#       Evaluate the accuracy of the tree
+# ===========================================
 
 # Generate predictions (both probabilities and class predictions)
 test$predict_proba <- predict(tree, test)[,2]
