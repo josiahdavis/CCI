@@ -31,6 +31,9 @@ tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch,
 # View the tree
 tree
 
+# Plot the tree
+plot(as.party(tree))
+
 # View the details of each node
 summary(tree)
 
@@ -95,12 +98,3 @@ sum(test_lived$prediction == test_lived$survived) / nrow(test_lived)
 # A.K.A. True Negative Rate
 test_died = test[!test$survived,]
 sum(test_died$prediction == test_died$survived) / nrow(test_died)
-
-# AUC (TBD)
-
-########
-# Plot the tree
-########
-plot(as.party(tree))
-
-# TBD
