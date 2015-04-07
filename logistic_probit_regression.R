@@ -1,6 +1,6 @@
 #############################################
 #
-#            LOGISTIC  REGRESSION
+#     LOGISTIC  &  PROBIT  REGRESSION
 #
 #############################################
 
@@ -31,6 +31,10 @@ summary(train)
 lr <- glm(survived ~ pclass + sex + age + sibsp + parch, 
              family = binomial(logit), 
              data = train)
+
+pr <- glm(survived ~ pclass + sex + age + sibsp + parch, 
+          family = binomial(probit), 
+          data = train)
 
 summary(lr)
 
