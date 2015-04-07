@@ -32,7 +32,7 @@ rf <- randomForest(as.factor(survived) ~ pclass + sex + age + sibsp + parch,
                    data = train,
                    na.action = na.omit)
 
-# Show the values of the random forest
+# Show a summary of the random forest
 rf
 
 # Print out the importance scores
