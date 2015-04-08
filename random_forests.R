@@ -22,6 +22,7 @@ data$survived = data$survived == 'survived'
 idxs <- runif(nrow(data)) < 0.7   # Random Indices
 train <- data[idxs, ]             # Training set
 test  <- data[!idxs, ]            # Testing set
+rm(idxs, data)
 summary(train)
 
 
