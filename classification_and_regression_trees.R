@@ -84,7 +84,7 @@ tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch,
 # ===========================================
 
 # Generate predictions (both probabilities and class predictions)
-test$predict_proba <- predict(tree, test)[,2]
+test$predict_proba <- predict(tree, type = "prob", newdata = test)[,2]
 test$prediction <- predict_proba > 0.5
 
 # Acccuracy in terms of classification rate (with 0.5 threshhold)
