@@ -1,7 +1,7 @@
 #############################################
-#
-#     LOGISTIC  &  PROBIT  REGRESSION
-#
+##                                         ##
+##     LOGISTIC  &  PROBIT  REGRESSION     ##
+##                                         ##
 #############################################
 
 
@@ -53,13 +53,33 @@ pr <- glm(survived ~ pclass + sex + age + sibsp + parch,
 
 summary(pr)
 
-
 # ===========================================
 #       Modify the specification
 # ===========================================
 
-# Add an interaction term
+# ':' indicates interaction terms
 lr <- glm(survived ~ pclass + sex + age + pclass:age + sibsp + parch, 
+          family = binomial(link = logit), 
+          data = train)
+
+# '*' indicates interaction term and automatically includes main effects
+lr <- glm(survived ~ sex + pclass*age + sibsp + parch, 
+          family = binomial(link = logit), 
+          data = train)
+
+# 'C()' indicates categorical variable and automatically "dummifies" the data
+# This already  by default if the variable is a factor
+lr <- glm(survived ~ C(pclass) + sex + age + sibsp + parch, 
+          family = binomial(link = logit), 
+          data = train)
+
+# as.factor is required if the variable is in a non-factor form
+lr <- glm(survived ~ pclass + sex + age + as.factor(sibsp) + parch, 
+          family = binomial(link = logit), 
+          data = train)
+
+# Transformations can be applied directly within the formula statement
+lr <- glm(survived ~ pclass + sex + log(age) + sibsp + parch, 
           family = binomial(link = logit), 
           data = train)
 
@@ -68,7 +88,7 @@ lr <- glm(survived ~ pclass + sex + age + pclass:age + sibsp + parch,
 # ===========================================
 
 # Generate predictions (both probabilities and class predictions)
-test$predict_proba <- predict(lr, test)
+test$predict_proba <- predict(lr, type = "response", newdata = test)
 test$prediction <- predict_proba > 0.5
 
 # Acccuracy in terms of classification rate (with 0.5 threshhold)
