@@ -12,7 +12,6 @@
 rm(list=ls()); gc()     # clear the workspace
 set.seed(973487)        # Ensures you can repeat the results
 library(rpart)          # For creating the tree
-library(partykit)       # For plotting the tree
 setwd("C:/Users/josdavis/Documents/Personal/GitHub/CCI")
 
 # Get the data
@@ -38,9 +37,6 @@ tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch,
 # View the tree
 tree
 
-# View the details of each node
-summary(tree)
-
 # View the importance scores (avg. decrease in gini coefficient)
 tree$variable.importance
 
@@ -54,10 +50,11 @@ text(tree)
 
 # Good quick alternative is to convert the rpart object to a binary tree 
 # using the partykit package
+install.packages("partykit", dep = TRUE)
 library(partykit)  
 plot(as.party(tree))
 
-# This package provides some additional options for plotting
+# The prp function (pretty rpart plotter) provides some additional options for plotting
 library(rpart.plot)
 prp(tree) 
 # Check out documention (?prp) for more plotting options
@@ -66,12 +63,12 @@ prp(tree)
 # The 'rattle' package is a prp wrapper that has a prettier default
 library(rattle) 
 fancyRpartPlot(tree)
-# 
 
 # ===========================================
 #       Control the parameters of the tree
 # ===========================================
 
+# ---- Option #1 ---- 
 # The control argument allows you to limit how large the tree grows
 # For example: minsplit = 30 stops splitting once a node has 30 or less data points
 tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
@@ -79,6 +76,7 @@ tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch,
               method = "class",
               control = rpart.control(minsplit = 30))
 
+# ---- Option #2 ---- 
 # Another example: maxdepth = 4 limits the depth of the tree to 4 levels (inlcuding terminal node)
 tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
               data = train,
@@ -106,7 +104,7 @@ tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch,
 
 # Generate predictions (both probabilities and class predictions)
 test$predict_proba <- predict(tree, type = "prob", newdata = test)[,2]
-test$prediction <- predict_proba > 0.5
+test$prediction <- test$predict_proba > 0.5
 
 # Acccuracy in terms of classification rate (with 0.5 threshhold)
 sum(test$prediction == test$survived) / nrow(test)
