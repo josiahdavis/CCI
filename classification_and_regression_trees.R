@@ -38,14 +38,35 @@ tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch,
 # View the tree
 tree
 
-# Plot the tree
-plot(as.party(tree))
-
 # View the details of each node
 summary(tree)
 
 # View the importance scores (avg. decrease in gini coefficient)
 tree$variable.importance
+
+# ===========================================
+#       Plot the tree
+# ===========================================
+
+# Simple plot is ugly and uninformative
+plot(tree)
+text(tree)
+
+# Good quick alternative is to convert the rpart object to a binary tree 
+# using the partykit package
+library(partykit)  
+plot(as.party(tree))
+
+# This package provides some additional options for plotting
+library(rpart.plot)
+prp(tree) 
+# Check out documention (?prp) for more plotting options
+# http://www.milbo.org/rpart-plot/prp.pdf is a very thorough user manual for prp()
+
+# The 'rattle' package is a prp wrapper that has a prettier default
+library(rattle) 
+fancyRpartPlot(tree)
+# 
 
 # ===========================================
 #       Control the parameters of the tree
