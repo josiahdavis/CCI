@@ -1,8 +1,8 @@
-#############################################
-#                                           #
-#         PARAMETER  OPTIMIZATION           #
-#                                           #
-#############################################
+###############################################
+###                                         ###
+###         PARAMETER OPTIMIZATION          ###
+###                                         ###
+###############################################
 
 # ===========================================
 #     Set up the workspace and get the data
@@ -19,53 +19,77 @@ data <- read.csv("titanic.csv", header = TRUE)
 data$survived = data$survived == 'survived'
 data <- na.omit(data)
 
-# Split into training and testing sets
-idxs <- runif(nrow(data)) < 0.7   # Random Indices
-train <- data[idxs, ]             # Training set
-test  <- data[!idxs, ]            # Testing set
-rm(idxs)
-
 # ===========================================
-#     Create and evaluate the  model 
-#     using default settings
+#     Run the tuning sequence
 # ===========================================
 
-model <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
-                data = train, 
-                method = "class")
-
-# Generate predictions (both probabilities and class predictions)
-test$prediction <- predict(model, type = "prob", newdata = test)[,2] > 0.5
-
-# Acccuracy in terms of classification rate (with 0.5 threshhold)
-sum(test$prediction == test$survived) / nrow(test)
-
-# ===========================================
-#     Train multiple versions of the model
-#     using the caret package
-# ===========================================
 library(caret)
-
 # See here for a list of tuning parameters: http://topepo.github.io/caret/modelList.html
 
-tc <- trainControl(method = "cv", number = 5)
-
 tune_results <-train(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
-                   data = data, 
-                   metric = "Accuracy",
-                   method = "rpart2",
-                   trainControl = tc,
-                   tuneGrid = data.frame(maxdepth = c(1, 2, 3, 4, 5, 6, 7, 8)))
+                     data = data2,
+                     method = "rpart2")
 
+
+# Print out the best parameter option
 tune_results$bestTune
 
-tune_model <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+# Print out the results for all values
+tune_results$results
+
+# Plot the results of the tuning
+plot(tune_results$results$maxdepth, tune_results$results$Accuracy)
+
+# Print out a summary of the results
+tune_results
+
+# ===========================================
+#     Control parameters of the 
+#     tuning sequence
+# ===========================================
+
+# ---- Option #1 ---- 
+# tuneGRid specifies the range of values to evalaute the model across
+# Here I am specifying a wider range of max tree depths to evalaute my tree across
+# NOTE: the column name for the dataframe must be spelled the same as the argument to the function
+tg <- data.frame(maxdepth = c(2, 4, 6, 7, 8, 10, 15, 20, 25))
+
+tune_results <-train(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+                     data = data2,
+                     method = "rpart2",
+                     tuneGrid = tg)
+
+# Plot the results of the tuning
+plot(tune_results$results$maxdepth, tune_results$results$Accuracy)
+
+# Print out the best parameter option
+tune_results$bestTune
+
+# ---- Option #2 ---- 
+# trainControl specifies the computationa nuances of the resampling
+# Here I am specifying 5-fold cross validation
+tc <- trainControl(method = 'cv', number = 10)
+
+tune_results <-train(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+                     data = data2,
+                     method = "rpart2",
+                     tuneGrid = tg,
+                     trControl = tc)
+
+# Plot the results of the tuning
+plot(tune_results$results$maxdepth, tune_results$results$Accuracy)
+
+# ===========================================
+#     Create a model with the 
+#     best parameter value
+# ===========================================
+tuned_model <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
                               data = train, 
                               method = "class",
-                              control = rpart.control(cp = tune_results$bestTune))
+                              control = rpart.control(maxdepth = tune_results$bestTune))
 
 # Generate predictions (both probabilities and class predictions)
-test$prediction <- predict(tune_model, type = "prob", newdata = test)[,2] > 0.5
+test$prediction <- predict(tuned_model, type = "prob", newdata = test)[,2] > 0.5
 
 # Acccuracy in terms of classification rate (with 0.5 threshhold)
 sum(test$prediction == test$survived) / nrow(test)
