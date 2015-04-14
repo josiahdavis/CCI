@@ -19,6 +19,12 @@ data <- read.csv("titanic.csv", header = TRUE)
 data$survived = data$survived == 'survived'
 data <- na.omit(data)
 
+# Split into training and testing sets
+idxs <- runif(nrow(data)) < 0.7   # Random Indices
+train <- data[idxs, ]             # Training set
+test  <- data[!idxs, ]            # Testing set
+rm(idxs, data)
+
 # ===========================================
 #     Run the tuning sequence
 # ===========================================
@@ -27,7 +33,7 @@ library(caret)
 # See here for a list of tuning parameters: http://topepo.github.io/caret/modelList.html
 
 tune_results <-train(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
-                     data = data2,
+                     data = train,
                      method = "rpart2")
 
 
@@ -40,8 +46,17 @@ tune_results$results
 # Plot the results of the tuning
 plot(tune_results$results$maxdepth, tune_results$results$Accuracy)
 
+# Alternatively, caret has a built in plotting option
+plot(tune_results)
+
 # Print out a summary of the results
 tune_results
+
+# Make predictions using "optimal" model
+preds <- predict(tune_results, test)
+
+# Evaluate the accuracy of the "optimal" model
+sum(preds == test$survived) / nrow(test)
 
 # ===========================================
 #     Control parameters of the 
