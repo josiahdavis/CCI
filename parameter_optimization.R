@@ -129,3 +129,7 @@ plot(tuned_tree)
 # -- Imputation of missing data
 # -- Pre-processing of data (e.g., center and scaling)
 # -- Tuning over multiple parameters (not supported in all packages)
+
+# Going further:
+# The author of this package wrote an excellent book: Applied Predictive Modeling
+# http://appliedpredictivemodeling.com/
