@@ -5,106 +5,136 @@
 ###############################################
 
 # ===========================================
-#     Set up the workspace and get the data
+#   Set up the workspace and get the data
 # ===========================================
 
 rm(list=ls()); gc()     # clear the workspace
 set.seed(973487)        # Ensures you can repeat the results
-library(rpart)          # For creating the tree
-library(partykit)       # For plotting the tree
 setwd("C:/Users/josdavis/Documents/Personal/GitHub/CCI")
 
 # Get the data
 data <- read.csv("titanic.csv", header = TRUE)
-data$survived = data$survived == 'survived'
 data <- na.omit(data)
 
 # Split into training and testing sets
-idxs <- runif(nrow(data)) < 0.7   # Random Indices
+idxs <- runif(nrow(data)) < 0.8   # Random Indices
 train <- data[idxs, ]             # Training set
 test  <- data[!idxs, ]            # Testing set
 rm(idxs, data)
 
 # ===========================================
-#     Run the tuning sequence
+#   Run and evaluate the tuning sequence
 # ===========================================
 
 library(caret)
-# See here for a list of tuning parameters: http://topepo.github.io/caret/modelList.html
 
-tune_results <-train(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+# See here for a list of tuning parameters: http://topepo.github.io/caret/modelList.html
+tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch, 
                      data = train,
                      method = "rpart2")
 
-
 # Print out the best parameter option
-tune_results$bestTune
+tuned_tree$bestTune
 
 # Print out the results for all values
-tune_results$results
-
-# Plot the results of the tuning
-plot(tune_results$results$maxdepth, tune_results$results$Accuracy)
-
-# Alternatively, caret has a built in plotting option
-plot(tune_results)
+tuned_tree$results
 
 # Print out a summary of the results
-tune_results
+tuned_tree
 
-# Make predictions using "optimal" model
-preds <- predict(tune_results, test)
+# Plot the results of the tuning
+plot(tuned_tree$results$maxdepth, tuned_tree$results$Accuracy)
+
+# Alternatively, caret has a built in plotting option
+plot(tuned_tree)
+ggplot(tuned_tree)
+
+# ===========================================
+#   Making and evaluating predictions 
+# ===========================================
+
+# The output of the training process is a model with the "optimal" parameters
+# This model can be used to make predictions on out of sample data
+
+# type = "raw" gives class output,  
+pred <- predict(tuned_tree, test, type = "raw")
+
+# type = "prob" gives probabilities
+pred_proba <- predict(tuned_tree, test, type = "prob")
 
 # Evaluate the accuracy of the "optimal" model
 sum(preds == test$survived) / nrow(test)
 
+# The confusionMatrix shows the predicted and actual values
+confusionMatrix(data = preds, test$survived)
+
 # ===========================================
-#     Control parameters of the 
-#     tuning sequence
+#   Controling the tuning sequence
 # ===========================================
 
-# ---- Option #1 ---- 
-# tuneGRid specifies the range of values to evalaute the model across
-# Here I am specifying a wider range of max tree depths to evalaute my tree across
-# NOTE: the column name for the dataframe must be spelled the same as the argument to the function
-tg <- data.frame(maxdepth = c(2, 4, 6, 7, 8, 10, 15, 20, 25))
+# tuneLength specifies HOW MANY OPTIONS the tuning parameter will be set to  
+tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch, 
+                   data = train,
+                   method = "rpart2",
+                   tuneLength = 5)
 
-tune_results <-train(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
-                     data = data2,
+tuned_tree$results
+plot(tuned_tree)
+
+# tuneGrid specifies THE ACTUAL OPTIONS the tuning parameter will be set to
+tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch, 
+                   data = train,
+                   method = "rpart2",
+                   tuneGrid = data.frame(maxdepth = c(2, 4, 6, 8, 10, 12)))
+
+tuned_tree$results
+plot(tuned_tree)
+
+# method specifies the model and default tuning parameters  
+tuned_forest <-train(survived ~ pclass + sex + age + sibsp + parch, 
+                     data = train,
+                     method = "rf")
+
+tuned_forest
+
+# See here for a complete list of supported method options: 
+# http://topepo.github.io/caret/modelList.html
+
+# ===========================================
+#   Controlling the resampling process
+# ===========================================
+
+# the trainControl function specifies the nuances 
+# of the resampling process.
+
+tc <- trainControl(
+                   # "cv" stands for cross-validation
+                   method = "cv", 
+                   
+                   # The number of folds
+                   number = 5)
+
+tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch, 
+                     data = train,
                      method = "rpart2",
-                     tuneGrid = tg)
-
-# Plot the results of the tuning
-plot(tune_results$results$maxdepth, tune_results$results$Accuracy)
-
-# Print out the best parameter option
-tune_results$bestTune
-
-# ---- Option #2 ---- 
-# trainControl specifies the computationa nuances of the resampling
-# Here I am specifying 5-fold cross validation
-tc <- trainControl(method = 'cv', number = 10)
-
-tune_results <-train(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
-                     data = data2,
-                     method = "rpart2",
-                     tuneGrid = tg,
                      trControl = tc)
 
+# Note the resampling method
+tuned_tree
+
 # Plot the results of the tuning
-plot(tune_results$results$maxdepth, tune_results$results$Accuracy)
+plot(tuned_tree)
 
-# ===========================================
-#     Create a model with the 
-#     best parameter value
-# ===========================================
-tuned_model <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
-                              data = train, 
-                              method = "class",
-                              control = rpart.control(maxdepth = tune_results$bestTune))
 
-# Generate predictions (both probabilities and class predictions)
-test$prediction <- predict(tuned_model, type = "prob", newdata = test)[,2] > 0.5
+# --- TO-DO ---
+# Add example of a two-dimensional tuning grid
+# e.g. expand.grid(mfinal = c(1, 5, 9), max_depth = (1:3))
+# Add example of pre-processing
 
-# Acccuracy in terms of classification rate (with 0.5 threshhold)
-sum(test$prediction == test$survived) / nrow(test)
+
+# The data can be pre-processed within the train function call
+tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch, 
+                   data = train,
+                   method = "rpart2",
+                   trControl = tc,
+                   preProc = c("center", "scale"))
