@@ -125,16 +125,7 @@ tuned_tree
 # Plot the results of the tuning
 plot(tuned_tree)
 
-
-# --- TO-DO ---
-# Add example of a two-dimensional tuning grid
-# e.g. expand.grid(mfinal = c(1, 5, 9), max_depth = (1:3))
-# Add example of pre-processing
-
-
-# The data can be pre-processed within the train function call
-tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch, 
-                   data = train,
-                   method = "rpart2",
-                   trControl = tc,
-                   preProc = c("center", "scale"))
+# Aspects of the caret package not covered:
+# -- Imputation of missing data
+# -- Pre-processing of data (e.g., center and scaling)
+# -- Tuning over multiple parameters (not supported in all packages)
