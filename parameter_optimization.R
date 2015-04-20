@@ -98,7 +98,6 @@ tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch,
 tuned_tree$results
 plot(tuned_tree)
 
-
 # ===========================================
 #   EXERCISE: Tuning the Random Forest
 # ===========================================
