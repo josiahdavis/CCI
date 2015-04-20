@@ -3,4 +3,4 @@
 * Classification and Regression Trees ([code](classification_and_regression_trees.R))
 * Random Forests ([code](random_forests.R))
 * Parameter Tuning ([code](parameter_optimization.R))
-* Logistic and Probit Regression ([code](logistic_probit_regression.R))
+* Overview of concepts ([slides](trees_tuning.pdf))
