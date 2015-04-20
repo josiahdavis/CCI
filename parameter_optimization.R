@@ -29,11 +29,6 @@ library(caret)
 
 # Create a fitted tuning object
 tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch,
-                    data = train,
-                    method = "rpart2", 
-                    trControl = trainControl(method = "cv", number = 5))
-
-tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch,
                    data = train,                            # data refers to the dataset used for tuning
                    method = "rpart2",                       # method refers to the 
                    trControl = trainControl(method = "cv")) # trainControl refers to the resampling details
@@ -75,16 +70,20 @@ sum(pred == test$survived) / nrow(test)
 
 # The confusionMatrix shows the predicted and actual values
 confusionMatrix(data = pred, test$survived)
+# See ?confusionMatrix for a reminder on the formulas for these measures
 
 # ===========================================
-#   Controling the tuning sequence
+#   Modifying the tuning sequence
 # ===========================================
 
 # tuneLength specifies HOW MANY OPTIONS the tuning parameter will be set to  
 tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch, 
                    data = train,
                    method = "rpart2",
+                   trControl = trainControl(method = "cv"),
                    tuneLength = 5)
+
+# NOTE: 0.785 is the accuracy if you predict based solely on train$sex
 
 tuned_tree$results
 plot(tuned_tree)
@@ -93,8 +92,8 @@ plot(tuned_tree)
 tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch, 
                    data = train,
                    method = "rpart2",
-                   tuneGrid = data.frame(maxdepth = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)),
-                   trControl = trainControl(method = "cv", number = 10))
+                   trControl = trainControl(method = "cv"),
+                   tuneGrid = data.frame(maxdepth = c(1, 2, 3, 4, 5)))
 
 tuned_tree$results
 plot(tuned_tree)
@@ -134,11 +133,25 @@ tuned_tree
 # Plot the results of the tuning
 plot(tuned_tree)
 
-# Aspects of the caret package not covered:
-# -- Imputation of missing data
-# -- Pre-processing of data (e.g., center and scaling)
-# -- Tuning over multiple parameters (not supported in all packages)
+# ===========================================
+#   Notes
+# ===========================================
 
-# Going further:
+# ---- Not covered ----
+# Imputation of missing data
+# Pre-processing of data (e.g., center and scaling)
+# Tuning over multiple parameters (not supported in many packages)
+
+# ---- Going further ----
 # The author of this package wrote an excellent book: Applied Predictive Modeling
 # http://appliedpredictivemodeling.com/
+
+# ---- Gender Model ----
+# Female passengers have much higher survival rates than Males
+summarise(group_by(train, sex), survival_rate = mean(survived == 'survived'))
+
+# Make the predictions based solely on gender
+preds = ifelse(train$sex == 'female', 'survived', 'died')
+
+# Evaluate the accuracy of the gender only model
+sum(preds == train$survived) / nrow(train)
