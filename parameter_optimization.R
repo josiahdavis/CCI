@@ -17,7 +17,7 @@ data <- read.csv("titanic.csv", header = TRUE)
 data <- na.omit(data)
 
 # Split into training and testing sets
-idxs <- runif(nrow(data)) < 0.8   # Random Indices
+idxs <- runif(nrow(data)) < 0.75   # Random Indices
 train <- data[idxs, ]             # Training set
 test  <- data[!idxs, ]            # Testing set
 rm(idxs, data)
@@ -33,8 +33,7 @@ tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch,
                    method = "rpart2",                       # method refers to the 
                    trControl = trainControl(method = "cv")) # trainControl refers to the resampling details
 
-
-# See here for a list of tuning parameters: http://topepo.github.io/caret/modelList.html
+# See here for a list of supported method arguments: http://topepo.github.io/caret/modelList.html
 
 # Print out a summary of the results
 tuned_tree
@@ -51,6 +50,7 @@ plot(tuned_tree$results$maxdepth, tuned_tree$results$Accuracy)
 # Alternatively, caret has a built in plotting option
 plot(tuned_tree)
 ggplot(tuned_tree)
+
 
 # ===========================================
 #   Making and evaluating predictions 
@@ -78,10 +78,10 @@ confusionMatrix(data = pred, test$survived)
 
 # tuneLength specifies HOW MANY OPTIONS the tuning parameter will be set to  
 tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch, 
-                   data = train,
-                   method = "rpart2",
-                   trControl = trainControl(method = "cv"),
-                   tuneLength = 5)
+                      data = train,
+                      method = "rpart2",
+                      trControl = trainControl(method = "cv"),
+                      tuneLength = 5)
 
 # NOTE: 0.785 is the accuracy if you predict based solely on train$sex
 
@@ -90,51 +90,77 @@ plot(tuned_tree)
 
 # tuneGrid specifies THE ACTUAL OPTIONS the tuning parameter will be set to
 tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch, 
-                   data = train,
-                   method = "rpart2",
-                   trControl = trainControl(method = "cv"),
-                   tuneGrid = data.frame(maxdepth = c(1, 2, 3, 4, 5)))
+                      data = train,
+                      method = "rpart2",
+                      trControl = trainControl(method = "cv"),
+                      tuneGrid = data.frame(maxdepth = seq(1, 5)))
 
 tuned_tree$results
 plot(tuned_tree)
 
-# method specifies the model and default tuning parameters  
+
+# ===========================================
+#   EXERCISE: Tuning the Random Forest
+# ===========================================
+
+# 1) Create a fitted tuning object for a Random Forest called 'tuned_forest' with default 
+#    settings for the tuning grid and a 3-fold cross-validation.
+
+
+# 2) Determine the optimal parameter value for tuned_forest with the default tuning grid.
+#    What does the tuning parameter represent for the Random Forest?
+
+
+# 3) Specify your own tuning grid for the random forest.
+
+
+# 4) Create a new fitted tuning object for the Random Forest using your own tuning grid.
+
+
+# 5) Create predictions with the best fitted model on the test dataset
+
+
+# 6) Evaluate the accuracy on the test dataset
+
+
+# ===========================================
+#   SOLUTIONS: Tuning the Random Forest
+# ===========================================
+
+
+# 1) Create a fitted tuning object for a Random Forest called 'tuned_forest' with default 
+#    settings for the tuning grid and a 3-fold cross-validation.
+
 tuned_forest <-train(survived ~ pclass + sex + age + sibsp + parch, 
                      data = train,
-                     method = "rf")
+                     method = "rf",
+                     trControl = trainControl(method = "cv", number = 3))
 
-tuned_forest
+# 2) Determine the optimal parameter value for tuned_forest with the default tuning grid.
+#    What does the tuning parameter represent for the Random Forest?
 
-# See here for a complete list of supported method options: 
-# http://topepo.github.io/caret/modelList.html
+tuned_forest$bestTune
+ggplot(tuned_forest)
 
-# ===========================================
-#   Controlling the resampling process
-# ===========================================
+# 3) Specify your own tuning grid for the random forest.
+tg <- data.frame(mtry = seq(1, 5))
 
-# the trainControl function specifies the nuances 
-# of the resampling process.
-
-tc <- trainControl(
-                   # "cv" stands for cross-validation
-                   method = "cv", 
-                   
-                   # The number of folds
-                   number = 5)
-
-tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch, 
+# 4) Create a new fitted tuning object for the Random Forest using your own tuning grid.
+tuned_forest <-train(survived ~ pclass + sex + age + sibsp + parch, 
                      data = train,
-                     method = "rpart2", #aasdad
-                     trControl = tc)
+                     method = "rf",
+                     trControl = trainControl(method = "cv", number = 3),
+                     tuneGrid = tg)
 
-# Note the resampling method
-tuned_tree
+# 5) Create predictions with the fitted model on the test dataset
+pred_rf <- predict(tuned_forest, test, type = "raw")
 
-# Plot the results of the tuning
-plot(tuned_tree)
+# 6) Evaluate the accuracy on the test dataset
+sum(pred_rf == test$survived) / nrow(test)
+
 
 # ===========================================
-#   Notes
+#   NOTES
 # ===========================================
 
 # ---- Not covered ----
@@ -143,8 +169,8 @@ plot(tuned_tree)
 # Tuning over multiple parameters (not supported in many packages)
 
 # ---- Going further ----
-# The author of this package wrote an excellent book: Applied Predictive Modeling
-# http://appliedpredictivemodeling.com/
+# The author of this package wrote an excellent book: Applied Predictive Modeling http://appliedpredictivemodeling.com/
+# Additional Documentation on training and tuning: http://topepo.github.io/caret/training.html
 
 # ---- Gender Model ----
 # Female passengers have much higher survival rates than Males
@@ -153,5 +179,5 @@ summarise(group_by(train, sex), survival_rate = mean(survived == 'survived'))
 # Make the predictions based solely on gender
 preds = ifelse(train$sex == 'female', 'survived', 'died')
 
-# Evaluate the accuracy of the gender only model
-sum(preds == train$survived) / nrow(train)
+# Evaluate the accuracy of the gender only model 
+sum(preds == train$survived) / nrow(train) # 0.7852
