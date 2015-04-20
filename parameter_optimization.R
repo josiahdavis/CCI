@@ -25,22 +25,30 @@ rm(idxs, data)
 # ===========================================
 #   Run and evaluate the tuning sequence
 # ===========================================
-
 library(caret)
 
+# Create a fitted tuning object
+tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch,
+                    data = train,
+                    method = "rpart2", 
+                    trControl = trainControl(method = "cv", number = 5))
+
+tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch,
+                   data = train,                            # data refers to the dataset used for tuning
+                   method = "rpart2",                       # method refers to the 
+                   trControl = trainControl(method = "cv")) # trainControl refers to the resampling details
+
+
 # See here for a list of tuning parameters: http://topepo.github.io/caret/modelList.html
-tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch, 
-                     data = train,
-                     method = "rpart2")
-
-# Print out the best parameter option
-tuned_tree$bestTune
-
-# Print out the results for all values
-tuned_tree$results
 
 # Print out a summary of the results
 tuned_tree
+
+# Print out the model evaluation results only
+tuned_tree$results
+
+# Print out the best parameter option
+tuned_tree$bestTune
 
 # Plot the results of the tuning
 plot(tuned_tree$results$maxdepth, tuned_tree$results$Accuracy)
@@ -63,10 +71,10 @@ pred <- predict(tuned_tree, test, type = "raw")
 pred_proba <- predict(tuned_tree, test, type = "prob")
 
 # Evaluate the accuracy of the "optimal" model
-sum(preds == test$survived) / nrow(test)
+sum(pred == test$survived) / nrow(test)
 
 # The confusionMatrix shows the predicted and actual values
-confusionMatrix(data = preds, test$survived)
+confusionMatrix(data = pred, test$survived)
 
 # ===========================================
 #   Controling the tuning sequence
@@ -85,7 +93,8 @@ plot(tuned_tree)
 tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch, 
                    data = train,
                    method = "rpart2",
-                   tuneGrid = data.frame(maxdepth = c(2, 4, 6, 8, 10, 12)))
+                   tuneGrid = data.frame(maxdepth = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)),
+                   trControl = trainControl(method = "cv", number = 10))
 
 tuned_tree$results
 plot(tuned_tree)
@@ -116,7 +125,7 @@ tc <- trainControl(
 
 tuned_tree <-train(survived ~ pclass + sex + age + sibsp + parch, 
                      data = train,
-                     method = "rpart2",
+                     method = "rpart2", #aasdad
                      trControl = tc)
 
 # Note the resampling method
