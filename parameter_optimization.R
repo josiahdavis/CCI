@@ -103,24 +103,30 @@ plot(tuned_tree)
 #   EXERCISE: Tuning the Random Forest
 # ===========================================
 
-# 1) Create a fitted tuning object for a Random Forest called 'tuned_forest' with default 
+# 1) Read in the Salaries dataset and split into train/test sets
+
+
+# 2) Create a fitted tuning object for a Random Forest called 'tuned_forest' with default 
 #    settings for the tuning grid and a 3-fold cross-validation.
 
 
-# 2) Determine the optimal parameter value for tuned_forest with the default tuning grid.
+# 3) Determine the optimal parameter value for tuned_forest with the default tuning grid.
 #    What does the tuning parameter represent for the Random Forest?
 
 
-# 3) Specify your own tuning grid for the random forest.
+
+# 4) Specify your own tuning grid for the random forest.
 
 
-# 4) Create a new fitted tuning object for the Random Forest using your own tuning grid.
+# 5) Create a new fitted tuning object for the Random Forest using your own tuning grid.
 
 
-# 5) Create predictions with the best fitted model on the test dataset
+# 6) Create predictions with the fitted model on the test dataset
 
 
-# 6) Evaluate the accuracy on the test dataset
+# 7) Evaluate the accuracy on the test dataset
+
+
 
 
 # ===========================================
@@ -128,34 +134,43 @@ plot(tuned_tree)
 # ===========================================
 
 
-# 1) Create a fitted tuning object for a Random Forest called 'tuned_forest' with default 
+# 1) Read in the Salaries dataset and split into train/test sets
+data <- read.csv("salaries.csv", header = TRUE)
+data <- na.omit(data)
+
+idxs <- runif(nrow(data)) < 0.75   # Random Indices
+train <- data[idxs, ]             # Training set
+test  <- data[!idxs, ]            # Testing set
+rm(idxs, data)
+
+# 2) Create a fitted tuning object for a Random Forest called 'tuned_forest' with default 
 #    settings for the tuning grid and a 3-fold cross-validation.
 
-tuned_forest <-train(survived ~ pclass + sex + age + sibsp + parch, 
+tuned_forest <-train(salary ~ ., 
                      data = train,
                      method = "rf",
                      trControl = trainControl(method = "cv", number = 3))
 
-# 2) Determine the optimal parameter value for tuned_forest with the default tuning grid.
+# 3) Determine the optimal parameter value for tuned_forest with the default tuning grid.
 #    What does the tuning parameter represent for the Random Forest?
 
 tuned_forest$bestTune
 ggplot(tuned_forest)
 
-# 3) Specify your own tuning grid for the random forest.
+# 4) Specify your own tuning grid for the random forest.
 tg <- data.frame(mtry = seq(1, 5))
 
-# 4) Create a new fitted tuning object for the Random Forest using your own tuning grid.
+# 5) Create a new fitted tuning object for the Random Forest using your own tuning grid.
 tuned_forest <-train(survived ~ pclass + sex + age + sibsp + parch, 
                      data = train,
                      method = "rf",
                      trControl = trainControl(method = "cv", number = 3),
                      tuneGrid = tg)
 
-# 5) Create predictions with the fitted model on the test dataset
+# 6) Create predictions with the fitted model on the test dataset
 pred_rf <- predict(tuned_forest, test, type = "raw")
 
-# 6) Evaluate the accuracy on the test dataset
+# 7) Evaluate the accuracy on the test dataset
 sum(pred_rf == test$survived) / nrow(test)
 
 
