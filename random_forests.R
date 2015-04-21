@@ -16,7 +16,6 @@ setwd("C:/Users/josdavis/Documents/Personal/GitHub/CCI")
 
 # Get the data
 data <- read.csv("titanic.csv", header = TRUE)
-data$survived = data$survived == 'survived'
 
 # Split into training and testing sets
 idxs <- runif(nrow(data)) < 0.7   # Random Indices
@@ -29,7 +28,7 @@ summary(train)
 # ===========================================
 #       Run the forest
 # ===========================================
-rf <- randomForest(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+rf <- randomForest(survived ~ pclass + sex + age + sibsp + parch, 
                    data = train,
                    na.action = na.omit)
 
@@ -44,13 +43,13 @@ rf$importance
 # ===========================================
 
 # Change the number of variables considered for each split
-rf <- randomForest(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+rf <- randomForest(survived ~ pclass + sex + age + sibsp + parch, 
                    data = train,
                    na.action = na.omit,
                    mtry = 3)
 
 # Change the number of trees
-rf <- randomForest(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+rf <- randomForest(survived ~ pclass + sex + age + sibsp + parch, 
                    data = train,
                    na.action = na.omit,
                    ntree = 300)

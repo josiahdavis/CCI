@@ -16,7 +16,6 @@ setwd("C:/Users/josdavis/Documents/Personal/GitHub/CCI")
 
 # Get the data
 data <- read.csv("titanic.csv", header = TRUE)
-data$survived = data$survived == 'survived'
 
 # Split into training and testing sets
 idxs <- runif(nrow(data)) < 0.7   # Random Indices
@@ -30,7 +29,7 @@ summary(train)
 #       Create the tree
 # ===========================================
 
-tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+tree <- rpart(survived ~ pclass + sex + age + sibsp + parch, 
               data = train, 
               method = "class")
 
@@ -71,14 +70,14 @@ fancyRpartPlot(tree)
 # ---- Option #1 ---- 
 # The control argument allows you to limit how large the tree grows
 # For example: minsplit = 30 stops splitting once a node has 30 or less data points
-tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+tree <- rpart(survived ~ pclass + sex + age + sibsp + parch, 
               data = train,
               method = "class",
               control = rpart.control(minsplit = 30))
 
 # ---- Option #2 ---- 
 # Another example: maxdepth = 4 limits the depth of the tree to 4 levels (inlcuding terminal node)
-tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+tree <- rpart(survived ~ pclass + sex + age + sibsp + parch, 
               data = train,
               method = "class",
               control = rpart.control(maxdepth = 4))
@@ -87,13 +86,13 @@ tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch,
 ?rpart.control
 
 # Remove records with missing response or ALL missing inputs (DEFALUT)
-tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+tree <- rpart(survived ~ pclass + sex + age + sibsp + parch, 
               data = train,
               method = "class",
               na.action = na.rpart)
 
 # Missing values (remove rows with any missing values)
-tree <- rpart(as.factor(survived) ~ pclass + sex + age + sibsp + parch, 
+tree <- rpart(survived ~ pclass + sex + age + sibsp + parch, 
               data = train,
               method = "class",
               na.action = na.omit)
